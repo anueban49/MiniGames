@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-
+import { useEffect } from "react";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -17,90 +17,173 @@ export default function todoApp() {
   const [value, setValue] = useState("");
   const [todos, setTodos] = useState([]);
   const [filter, setFilter] = useState("All");
-  console.log(nanoid())
-  console.log(todos.status);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("Saved");
+    if (saved) {
+      setTodos(JSON.parse(saved));
+    }
+    return;
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("Saved", JSON.stringify(todos));
+    return;
+  }, [todos]);
+
+  const TodoItem = ({ prop }) => {
+    return (
+      <div className="flex gap-2 items-center justify-between w-full p-2">
+        <div className="flex gap-2">
+          <div className="flex items-center justify-center">
+            <Checkbox
+              checked={prop.status === STATUS.COMPLETE}
+              onCheckedChange={() => {
+                setTodos((prevTodos) =>
+                  prevTodos.map((item) => {
+                    if (item.id === prop.id) {
+                      return {
+                        ...item,
+                        status:
+                          item.status === STATUS.COMPLETE
+                            ? STATUS.INCOMPLETE
+                            : STATUS.COMPLETE,
+                      };
+                    }
+                    return item;
+                  }),
+                );
+              }}
+            />
+          </div>
+          <p
+            className={`${prop.status === STATUS.COMPLETE ? "line-through text-gray-500" : ""}`}
+          >
+            {prop.text}
+          </p>
+        </div>
+        <Button
+          className="self-end"
+          variant="destructive"
+          onClick={() => {
+            setTodos((todos) => todos.filter((t) => t.id !== prop.id));
+          }}
+        >
+          Delete
+        </Button>
+      </div>
+    );
+  };
+  const ShowAll = () => {
+    return (
+      <>
+        {todos.map((t) => (
+          <TodoItem prop={t} key={t.id} />
+        ))}
+      </>
+    );
+  };
+
+  const ShowIncomplete = () => {
+    return (
+      <>
+        {todos
+          .filter((t) => t.status === STATUS.INCOMPLETE)
+          .map((t) => (
+            <TodoItem prop={t} key={t.id} />
+          ))}
+      </>
+    );
+  };
+
+  const ShowCompleted = () => {
+    return (
+      <>
+        {todos
+          .filter((t) => t.status === STATUS.COMPLETE)
+          .map((t) => (
+            <TodoItem prop={t} key={t.id} />
+          ))}
+      </>
+    );
+  };
+
+  function RenderComponent({ filter }) {
+    switch (filter) {
+      case "All":
+        return <ShowAll />;
+      case "Incomplete":
+        return <ShowIncomplete />;
+      case "Completed":
+        return <ShowCompleted />;
+      default:
+        return <ShowAll />;
+    }
+  }
+
   return (
     <>
-      <main className="w-full h-full flex items-center justify-center">
-        <Card className="w-full max-w-sm p-5">
-          <CardTitle>To-Do List</CardTitle>
-          <div className="gap-2 grid grid-cols-3 text-4xl cursor-pointer ">
-            <Button className="px-4 py-2 w-full hover:bg-gray-500">All</Button>
-            <Button
-              onClick={() =>
-                todos.filter((todos) => todos.status === STATUS.INCOMPLETE)
-              }
-              className="px-4 py-2 w-full hover:bg-gray-500"
-            >
-              Incomplete
-            </Button>
-            <Button
-              onClick={() =>
-                todos.filter((todos) => todos.status === STATUS.COMPLETE)
-              }
-              className="px-4 py-2 w-full hover:bg-gray-500"
-            >
-              Completed
-            </Button>
-          </div>
-          <div className="flex justify-between gap-3">
-            <Input
-              className="width-80"
-              type="text"
-              placeholder="Add new task"
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-            ></Input>
-
-            <Button
-              onClick={() => {
-                setTodos([
-                  ...todos,
-                  { id: nanoid(), text: value, status: STATUS.INCOMPLETE },
-                ]);
-                setValue('');
-              }}
-            >
-              Add
-            </Button>
-          </div>
-
-          <CardContent className="flex flex-col gap-2">
-            {todos.filter(
-              (todo) => 
-                todo.status === STATUS.INCOMPLETE ||
-                todo.status === STATUS.COMPLETE
-              )
-              .map((todo, i) => (
-              <div
-              key={todo.id}
-                className="w-80 grid grid-cols-10 grid-rows-1 items-center "
+      <main className="w-full h-full flex items-center justify-center p-10">
+        <div className="w-full h-full flex justify-center">
+          <Card className="w-full max-w-sm p-5 h-fit">
+            <CardTitle>To-Do List</CardTitle>
+            <div className="gap-2 grid grid-cols-3 text-4xl cursor-pointer ">
+              <Button
+                className={`px-4 py-2 w-full hover:bg-gray-500 hover:text-white ease-in-out duration-300 bg-gray-200 text-black ${filter === "All" && "bg-gray-800 text-white"} `}
+                onClick={() => {
+                  setFilter("All");
+                }}
               >
-                <Checkbox
-                  onClick={() => {
-                    const updatedTodos = todos.map((item) => {
-                      if (item.id !== todo.id) return item;
-                      return { ...item, status: item.status === STATUS.COMPLETE ? STATUS.INCOMPLETE : STATUS.COMPLETE };
-                    });
-                    setTodos(updatedTodos)
-                  }}
-                  checked={todos.status === STATUS.COMPLETE}
-                  className="col-span-1"
-                />
-                <span className="col-span-6">{todos.text}</span>
-                <Button
-                  className="col-span-3"
-                  onClick={() => {
-                    setTodos(todos.filter((_, index) => index !== i));
-                  }}
-                >
-                  Delete
-                </Button>
-                
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+                All
+              </Button>
+              <Button
+                onClick={() => {
+                  setFilter("Incomplete");
+                }}
+                className={`px-4 py-2 w-full hover:bg-gray-500 hover:text-white ease-in-out duration-300 bg-gray-200 text-black ${filter === "Incomplete" && "bg-gray-800 text-white"} `}
+              >
+                Incomplete
+              </Button>
+              <Button
+                onClick={() => {
+                  setFilter("Completed");
+                }}
+                className={`px-4 py-2 w-full hover:bg-gray-500 hover:text-white ease-in-out duration-300 bg-gray-200 text-black ${filter === "Complete" && "bg-gray-800 text-white"} `}
+              >
+                Completed
+              </Button>
+            </div>
+            <div className="flex justify-between gap-3">
+              <Input
+                className="width-80"
+                type="text"
+                placeholder="Add new task"
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+              ></Input>
+
+              <Button
+                onClick={() => {
+                  setTodos([
+                    ...todos,
+                    { id: nanoid(), text: value, status: STATUS.INCOMPLETE },
+                  ]);
+                  setValue("");
+                }}
+              >
+                Add
+              </Button>
+            </div>
+
+            <CardContent className="flex flex-col gap-2 p-0">
+              {todos.length === 0 ? (
+                <>No items to show</>
+              ) : (
+                <RenderComponent filter={filter} />
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </main>
     </>
   );

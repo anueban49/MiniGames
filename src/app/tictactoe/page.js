@@ -10,7 +10,7 @@ const Board = ({ children }) => {
     </div>
   );
 };
-
+//no bot automation, done anyways
 const conditions = [
   [0, 1, 2],
   [3, 4, 5],
@@ -31,15 +31,6 @@ export default function tictactoe() {
   const [draw, setDraw] = useState(false);
   const [winnerFound, setWinnerFound] = useState(false);
   const [userRole, setUserRole] = useState("x");
-  const setRole = () => {
-    return (
-      <button
-        onClick={() => {
-          setUserRole((role) => (role === "X" ? "O" : "X"));
-        }}
-      ></button>
-    );
-  };
 
   const handleClick = (index) => {
     const newCell = [...cell];
@@ -80,7 +71,7 @@ export default function tictactoe() {
   return (
     <div className="w-full h-full flex flex-col items-center ">
       <h1 className="text-3xl font-bold p-10">Tic-Tac-Toe</h1>
-      <setRole />
+      {draw && <p>Refresh the page to replay again</p>}
       <Board>
         {cell.map((cell, index) => (
           <div
@@ -95,7 +86,11 @@ export default function tictactoe() {
         ))}
       </Board>
       <p className="text-2xl font-medium ease-in-out duration-300">
-        {winnerFound ? <>{winner} won</> : <>{turn}'s turn</>}
+        {draw ? (
+          <>Draw!</>
+        ) : (
+          <> {winnerFound ? <>{winner} won</> : <>{turn}'s turn</>}</>
+        )}
       </p>
     </div>
   );
