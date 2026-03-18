@@ -21,14 +21,19 @@ import {
   FormField,
 } from "@/components/ui/form";
 const MAX_UPLOAD_SIZE = 1024 * 1024 * 5;
-const ACCEPTED_IMAGE_TYPES = ["image/jpeg, image/jpg, image/png, image/webp"];
+const ACCEPTED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+];
 
 const ImageSchema = z
   .instanceof(File, { message: "Please upload your profile image" })
   .refine((file) => file.size <= MAX_UPLOAD_SIZE, `Max size is 5MB.`)
   .refine(
     (file) => ACCEPTED_IMAGE_TYPES.includes(file.type),
-    `jps, jpeg, png, webp are accepted.`
+    `jps, jpeg, png, webp are accepted.`,
   );
 
 const formSchema = z
@@ -78,9 +83,10 @@ function FillboxReusable({
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{label} 
+          <FormLabel>
+            {label}
             <span className="text-red-500">*</span>
-            </FormLabel>
+          </FormLabel>
           <FormControl>
             {type === "file" ? (
               <label className="flex flex-col items-center justify-center border-dashed border-2 border-gray-300 rounded-lg p-6 cursor-pointer hover:border-blue-500">
@@ -198,7 +204,7 @@ export default function FormPage() {
   async function handleNext() {
     // Validate only current step fields
     const fieldsToValidate = stepFields[step as keyof typeof stepFields].map(
-      (f) => f.name
+      (f) => f.name,
     );
     const isValid = await form.trigger(fieldsToValidate as any);
 
@@ -213,6 +219,7 @@ export default function FormPage() {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log("Form submitted:", values);
+    alert("Succesfully submitted!");
   }
 
   const currentFields = stepFields[step as keyof typeof stepFields];
@@ -260,11 +267,7 @@ export default function FormPage() {
                     Continue {step}/{totalSteps}
                   </Button>
                 ) : (
-                  <Button
-                    type="submit"
-                    className="flex-1"
-                    onSubmit={form.handleSubmit}
-                  >
+                  <Button type="submit" className="flex-1">
                     Submit
                   </Button>
                 )}
